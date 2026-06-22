@@ -2,27 +2,24 @@
 client.py
 
 Low-level HTTP client for the Ollama API.
-Wraps the /api/generate endpoint behind a clean function.
+Wraps the /api/chat endpoint behind a clean function.
 Swapping to a different provider later means changing this file only.
 """
 
-import os
 import requests
-from dotenv import load_dotenv
 
-load_dotenv()
-
-OLLAMA_BASE_URL = os.getenv("OLLAMA_BASE_URL")
+OLLAMA_BASE_URL = "http://localhost:11434"
 DEFAULT_MODEL = "llama3.2"
 
 
-def complete(prompt: str, model: str = DEFAULT_MODEL) -> str:
+def complete(system_prompt: str, user_prompt: str, model: str = DEFAULT_MODEL) -> str:
     """
-    Send a prompt to the local Ollama model and return the response text.
+    Send a system + user prompt to the local Ollama model and return the response.
 
     Args:
-        prompt: The full prompt string to send.
-        model:  The Ollama model name to use.
+        system_prompt: The agent's identity, rules, and constraints.
+        user_prompt:   The specific task or question for this request.
+        model:         The Ollama model name to use.
 
     Returns:
         The model's response as a plain string.
@@ -31,20 +28,26 @@ def complete(prompt: str, model: str = DEFAULT_MODEL) -> str:
         requests.HTTPError: If the Ollama API returns a non-2xx status.
         requests.ConnectionError: If Ollama is not running.
     """
-    url = f"{OLLAMA_BASE_URL}/api/generate"
+    url = f"{OLLAMA_BASE_URL}/api/chat"
     payload = {
         "model": model,
-        "prompt": prompt,
         "stream": False,
+        "messages": [
+            {"role": "system", "content": system_prompt},
+            {"role": "user", "content": user_prompt},
+        ],
     }
 
     response = requests.post(url, json=payload, timeout=60)
     response.raise_for_status()
 
-    return response.json()["response"]
+    return response.json()["message"]["content"]
 
 
 if __name__ == "__main__":
-    # Quick smoke test — run directly with: python client.py    
-    answer = complete("In one sentence, Do you know Glory Ojoma Simon?")
-    print(answer)
+    # Smoke test — run directly with: python client.py
+    reply = complete(
+        system_prompt="You are a helpful assistant. Always respond in exactly one sentence.",
+        user_prompt="What is an AI agent?",
+    )
+    print(reply)

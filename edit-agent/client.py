@@ -6,9 +6,13 @@ Wraps the /api/generate endpoint behind a clean function.
 Swapping to a different provider later means changing this file only.
 """
 
+import os
 import requests
+from dotenv import load_dotenv
 
-OLLAMA_BASE_URL = "http://localhost:11434"
+load_dotenv()
+
+OLLAMA_BASE_URL = os.getenv("OLLAMA_BASE_URL")
 DEFAULT_MODEL = "llama3.2"
 
 

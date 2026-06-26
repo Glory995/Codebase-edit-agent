@@ -43,3 +43,8 @@ print(generate_diff(original, proposed, "greet.py"))
 print("=== has_changes ===")
 print(has_changes(original, proposed))  # should print True
 print(has_changes(original, original))  # should print False
+
+
+# ── Day 9 practice ──────────────────────────────────────
+print("\n=== write_file with approval ===")
+write_file("workspace/approval_test.txt", "This is a test file.\nLine two.\n")

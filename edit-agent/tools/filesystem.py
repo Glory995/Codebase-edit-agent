@@ -104,24 +104,35 @@ def list_dir(path: str = ".") -> str:
 
 def write_file(path: str, content: str) -> str:
     """
-    Write content to a file, replacing whatever was there before.
+    Propose a file edit and write it only if the user approves.
+
+    Shows a diff of the proposed changes and waits for explicit
+    approval before writing anything to disk.
 
     Args:
         path:    Relative path to the file to write.
-        content: The full content to write.
+        content: The full content the agent wants to write.
 
     Returns:
-        A confirmation message.
+        A message describing what happened (approved or rejected).
 
     Raises:
         PermissionError: If the path escapes the project root.
     """
+    # _safe_path still runs first — safety check always happens
+    # regardless of whether the edit gets approved
     safe = _safe_path(path)
 
-    # Create any missing parent directories automatically
-    os.makedirs(os.path.dirname(safe), exist_ok=True)
+    # Import here to avoid circular imports
+    # (approval imports from filesystem, filesystem imports from approval)
+    from agent.approval import request_approval_or_skip
 
-    with open(safe, "w", encoding="utf-8") as f:
-        f.write(content)
+    approved, message = request_approval_or_skip(path, content)
 
-    return f"Successfully wrote {len(content)} characters to '{path}'."
+    if approved:
+        # User said yes — now actually write the file
+        os.makedirs(os.path.dirname(safe), exist_ok=True)
+        with open(safe, "w", encoding="utf-8") as f:
+            f.write(content)
+
+    return message

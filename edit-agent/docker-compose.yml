@@ -1,25 +1,13 @@
-
-
 services:
   edit-agent:
-    
     build: .
-
-    
     container_name: codebase-edit-agent
-
-   
     stdin_open: true
     tty: true
-
-    
     environment:
-      - OLLAMA_BASE_URL=${OLLAMA_BASE_URL:-http://host.docker.internal:11434}
-      - DEFAULT_MODEL=${DEFAULT_MODEL:-llama3.2}
-
-    
+      - OLLAMA_BASE_URL=http://172.20.10.2:11434
+      - DEFAULT_MODEL=llama3.2
     volumes:
       - ./workspace:/app/workspace
-
     extra_hosts:
       - "host.docker.internal:host-gateway"
